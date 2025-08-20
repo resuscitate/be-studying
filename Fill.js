@@ -1,6 +1,17 @@
 /**
  * Fill.js - Bilinear interpolation for grid data rendering
- * Handles small-sized grid data like 2x2 with proper boundary checking
+ * 
+ * This module provides bilinear interpolation functionality for grid-based data,
+ * specifically designed to handle small-sized grids like 2x2 without boundary issues.
+ * 
+ * Key fixes implemented:
+ * - Proper sampling point calculation for bilinear interpolation
+ * - Boundary clamping to ensure coordinates stay within [0,1] range
+ * - Correct handling of edge cases for small textures
+ * - Geographic coordinate conversion support
+ * 
+ * @author resuscitate
+ * @version 1.0.0
  */
 
 class Fill {
@@ -21,8 +32,21 @@ class Fill {
 
   /**
    * Get interpolated value at normalized coordinates (u, v)
-   * u, v should be in range [0, 1]
-   * Returns interpolated value using bilinear interpolation
+   * 
+   * This function performs bilinear interpolation to get a smooth value
+   * at any point within the grid. The coordinates are normalized to [0,1].
+   * 
+   * @param {number} u - Horizontal coordinate in range [0,1]
+   * @param {number} v - Vertical coordinate in range [0,1]
+   * @returns {number} Interpolated value
+   * 
+   * Algorithm:
+   * 1. Clamp u,v to [0,1] to prevent out-of-bounds access
+   * 2. Convert to grid coordinates: x = u*(width-1), y = v*(height-1)
+   * 3. Get integer bounds: x0,y0 = floor(x,y), x1,y1 = x0+1,y0+1
+   * 4. Clamp x1,y1 to stay within array bounds
+   * 5. Sample four corner values: tl, tr, bl, br
+   * 6. Perform bilinear interpolation: interpolate top/bottom, then vertically
    */
   getValue(u, v) {
     // Ensure u, v are clamped to [0, 1]
@@ -60,6 +84,13 @@ class Fill {
 
   /**
    * Get value at specific geographic coordinates (longitude, latitude)
+   * 
+   * Converts geographic coordinates to normalized texture coordinates
+   * and performs bilinear interpolation.
+   * 
+   * @param {number} lon - Longitude in degrees
+   * @param {number} lat - Latitude in degrees
+   * @returns {number} Interpolated value at the geographic location
    */
   getValueAtCoord(lon, lat) {
     // Convert geographic coordinates to normalized texture coordinates
@@ -70,7 +101,11 @@ class Fill {
   }
 
   /**
-   * Get raw value at grid indices (for testing)
+   * Get raw value at grid indices (for testing and debugging)
+   * 
+   * @param {number} x - Column index (0 to width-1)
+   * @param {number} y - Row index (0 to height-1)
+   * @returns {number|null} Raw grid value or null if out of bounds
    */
   getRawValue(x, y) {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
